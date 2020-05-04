@@ -40,7 +40,7 @@ trait TracksHistoryTrait
     protected function getHistoryBody($value, $field, $model)
     {
         return [
-            'description' => "Le champ '{$field}' a été changé de '".$model->getOriginal($field)."' en ${value}",
+            'description' => "Le champ '{$field}' a été changé de '".$model->getOriginal($field)."' en '${value}'",
         ];
     }
 
