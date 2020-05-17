@@ -5,9 +5,17 @@ namespace JeromeSavin\UccelloHistory\Traits;
 use Illuminate\Support\Facades\Auth;
 use JeromeSavin\UccelloHistory\Models\History;
 use Uccello\Core\Database\Eloquent\Model;
+use Uccello\Core\Models\Entity;
 
 trait TracksHistoryTrait
 {
+
+    public function histories()
+    {
+        return $this->hasManyThrough(History::class, Entity::class, 'record_id', 'model_uuid', 'id', 'id')
+            ->orderBy('created_at', 'desc');
+    }
+
     protected function track(Model $model, callable $func = null, $table = null, $id = null)
     {
         // Allow for overriding of table if it's not the model table
@@ -40,7 +48,7 @@ trait TracksHistoryTrait
     protected function getHistoryBody($value, $field, $model)
     {
         return [
-            'description' => "Le champ '{$field}' a été changé de '".$model->getOriginal($field)."' en '${value}'",
+            'description' => "Le champ '".uctrans('field.'.$field, $model->module)."' a été changé de '".$model->getOriginal($field)."' en '${value}'",
         ];
     }
 

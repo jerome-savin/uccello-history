@@ -12,7 +12,8 @@ return [
     ],
     'field' => [
         'user' => 'Utilisateur',
-        'description' => 'Description'
+        'description' => 'Description',
+        'model_uuid' => 'Entité liée'
     ],
     'field_info' => [
 
