@@ -3,9 +3,12 @@
 namespace JeromeSavin\UccelloHistory\Traits;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Lang;
 use JeromeSavin\UccelloHistory\Models\History;
 use Uccello\Core\Database\Eloquent\Model;
 use Uccello\Core\Models\Entity;
+use Uccello\Core\Models\Module;
+use Illuminate\Support\Str;
 
 trait TracksHistoryTrait
 {
@@ -24,6 +27,17 @@ trait TracksHistoryTrait
         $id = $id ?: $model->id;
         // Allow for customization of the history record if needed
         $func = $func ?: [$this, 'getHistoryBody'];
+
+        if (!$model->uuid) {
+            if ($model->module) {
+                Entity::create([
+                    'id' => (string) Str::uuid(),
+                    'module_id' => $model->module->id,
+                    'record_id' => $model->getKey(),
+                    'creator_id' => auth()->id(),
+                ]);
+            }
+        }
 
         // Get the dirty fields and run them through the custom function, then insert them into the history table
         $this->getUpdated($model)
@@ -48,15 +62,32 @@ trait TracksHistoryTrait
     protected function getHistoryBody($value, $field, $model)
     {
         return [
-            'description' => "Le champ '".uctrans('field.'.$field, $model->module)."' a été changé de '".$model->getOriginal($field)."' en '${value}'",
+            'description' => "Le champ '".uctrans('field.'.$field, $model->module).
+                "' a été changé de '".
+                TracksHistoryTrait::transIfExists($model->getOriginal($field), $model->module->name).
+                "' en '".
+                TracksHistoryTrait::transIfExists($value, $model->module->name).
+                "'",
         ];
+    }
+
+    public static function transIfExists($value, $moduleName)
+    {
+        return Lang::has($moduleName.'.'.$value)?
+            trans($moduleName.'.'.$value):
+            $value;
     }
 
     protected function getUpdated($model)
     {
-        return collect($model->getDirty())->filter(function ($value, $key) {
+        $untrackableFields = $this->untrackableFields;
+        if (!$untrackableFields) {
+            $untrackableFields = [];
+        }
+        return collect($model->getDirty())->filter(function ($value, $key) use ($untrackableFields) {
             // We don't care if timestamps are dirty, we're not tracking those
-            return !in_array($key, ['created_at', 'updated_at']);
+            $a_timestamps = ['created_at', 'updated_at'];
+            return !in_array($key, array_merge($a_timestamps, $untrackableFields));
         })->mapWithKeys(function ($value, $key) {
             // Take the field names and convert them into human readable strings for the description of the action
             // e.g. first_name -> first name

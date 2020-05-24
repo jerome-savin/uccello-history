@@ -177,19 +177,6 @@ class CreateHistoryModule extends Migration
 
     protected function createRelatedLists($module)
     {
-        $opportunity_module = Module::where('name', 'opportunity')->first();
-
-
-        Relatedlist::create([
-            'module_id' => $opportunity_module->id,
-            'related_module_id' => $module->id,
-            'related_field_id' => Field::where('name', 'model_uuid')->first()->id,
-            'label' => 'relatedlist.histories',
-            'type' => 'n-1',
-            'method' => 'getDependentList',
-            'sequence' => $opportunity_module->relatedlists()->count(),
-            'data' => null
-        ]);  
     }
 
     protected function createLinks($module)

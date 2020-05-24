@@ -35,4 +35,10 @@ class History extends Model
     {
         return $this->id;
     }
+
+    public function getEntityAttribute()
+    {
+        
+        return ucrecord($this->model_uuid);
+    }
 }
