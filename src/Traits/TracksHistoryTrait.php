@@ -100,5 +100,13 @@ trait TracksHistoryTrait
         static::updating(function ($model) {
             $model->track($model);
         });
+
+        static::deleted(function ($model) {
+            $model->histories()->delete();
+        });
+
+        static::restored(function ($model) {
+            $model->histories()->restore();
+        });
     }
 }
