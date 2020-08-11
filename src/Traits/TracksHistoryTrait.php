@@ -19,6 +19,11 @@ trait TracksHistoryTrait
             ->orderBy('created_at', 'desc');
     }
 
+    public function historiesNotOrdered()
+    {
+        return $this->hasManyThrough(History::class, Entity::class, 'record_id', 'model_uuid', 'id', 'id');
+    }
+
     protected function track(Model $model, callable $func = null, $table = null, $id = null)
     {
         // Allow for overriding of table if it's not the model table
@@ -102,11 +107,11 @@ trait TracksHistoryTrait
         });
 
         static::deleted(function ($model) {
-            $model->histories()->delete();
+            $model->historiesNotOrdered()->delete();
         });
 
         static::restored(function ($model) {
-            $model->histories()->restore();
+            $model->historiesNotOrdered()->restore();
         });
     }
 }
